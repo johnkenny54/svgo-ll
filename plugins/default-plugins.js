@@ -11,6 +11,7 @@ import * as inlineStyles from './inlineStyles.js';
 import * as mergeGradients from './mergeGradients.js';
 import * as minifyColors from './minifyColors.js';
 import * as minifyGradients from './minifyGradients.js';
+import * as minifyNumbers from './minifyNumbers.js';
 import * as minifyPathData from './minifyPathData.js';
 import * as minifyStyles from './minifyStyles.js';
 import * as minifyTransforms from './minifyTransforms.js';
@@ -42,6 +43,7 @@ export const defaultPlugins = [
   inlineStyles,
   minifyStyles,
   cleanupIds,
+  minifyNumbers,
   minifyColors,
   minifyGradients,
   removeUnknownsAndDefaults,
