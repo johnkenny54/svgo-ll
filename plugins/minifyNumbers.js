@@ -23,6 +23,8 @@ export const fn = (info) => {
           switch (attName) {
             case 'height':
             case 'width':
+            case 'x':
+            case 'y':
               if (typeof attValue === 'string') {
                 element.attributes[attName] = removePx(attValue);
               }
