@@ -82,6 +82,17 @@ export const fn = (info) => {
               }
             }
             return;
+          case 'pattern':
+            if (
+              element.svgAtts.get('patternUnits')?.toString() ===
+              'userSpaceOnUse'
+            ) {
+              const id = element.svgAtts.get('id')?.toString();
+              if (id !== undefined) {
+                userSpaceElementIds.add(id);
+              }
+            }
+            return;
           default:
             return;
         }
