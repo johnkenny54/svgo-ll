@@ -32,6 +32,9 @@ export const fn = (info) => {
   /** @type {Map<string,import('../lib/types.js').XastElement[]>} */
   const clipPathUses = new Map();
 
+  /** @type {Set<string>} */
+  const userSpaceElementIds = new Set();
+
   /** @type {import('../lib/types.js').XastElement|undefined} */
   let defsElement;
 
@@ -48,25 +51,39 @@ export const fn = (info) => {
         }
         getReferencedIds(element).forEach((info) => currentIds.add(info.id));
 
-        if (element.local === 'defs') {
-          defsElement = element;
-        }
-
-        if (
-          element.local === 'use' &&
-          element.parentNode.type === 'element' &&
-          element.parentNode.local === 'clipPath'
-        ) {
-          // If it's a child of a <clipPath>, record the id to make sure we maintain direct references.
-          const hrefId = getHrefId(element);
-          if (hrefId === undefined) {
+        switch (element.local) {
+          case 'defs':
+            defsElement = element;
             return;
-          }
-          addToMapArray(clipPathUses, hrefId, element);
-        }
-
-        if (element.local !== 'rect') {
-          return;
+          case 'use':
+            if (
+              element.parentNode.type === 'element' &&
+              element.parentNode.local === 'clipPath'
+            ) {
+              // If it's a child of a <clipPath>, record the id to make sure we maintain direct references.
+              const hrefId = getHrefId(element);
+              if (hrefId === undefined) {
+                return;
+              }
+              addToMapArray(clipPathUses, hrefId, element);
+            }
+            return;
+          case 'rect':
+            break;
+          case 'linearGradient':
+          case 'radialGradient':
+            if (
+              element.svgAtts.get('gradientUnits')?.toString() ===
+              'userSpaceOnUse'
+            ) {
+              const id = element.svgAtts.get('id')?.toString();
+              if (id !== undefined) {
+                userSpaceElementIds.add(id);
+              }
+            }
+            return;
+          default:
+            return;
         }
 
         /** @type {import('../types/types.js').PathAttValue|undefined} */
@@ -87,8 +104,18 @@ export const fn = (info) => {
 
         let counter = 0;
 
-        for (const elements of rectToElements.values()) {
-          if (elements.length === 1) {
+        for (const rawElements of rectToElements.values()) {
+          const elements = rawElements.filter((element) => {
+            const fill = element.svgAtts.get('fill');
+            /** @type {import('../types/types.js').PaintAttValue|undefined} */
+            if (fill === undefined) {
+              return true;
+            }
+            const id = fill.getReferencedID();
+            return id === undefined || !userSpaceElementIds.has(id);
+          });
+
+          if (elements.length < 2) {
             continue;
           }
 
