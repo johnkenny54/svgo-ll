@@ -9,6 +9,7 @@ import {
 } from '../lib/tools-ast.js';
 import { createElement } from '../lib/xast.js';
 import { CLIP_FILT_MASK } from './_collections.js';
+import { getPresentationProperties } from './_styles.js';
 
 export const name = 'convertRectToUse';
 export const description = 'convert identical <rect>s to <use> elements';
@@ -131,13 +132,16 @@ export const fn = (info) => {
 
         for (const rawElements of rectToElements.values()) {
           const elements = rawElements.filter((element) => {
-            const fill = element.svgAtts.get('fill');
-            /** @type {import('../types/types.js').PaintAttValue|undefined} */
-            if (fill === undefined) {
-              return true;
-            }
-            const id = fill.getReferencedID();
-            return id === undefined || !userSpaceElementIds.has(id);
+            const props = getPresentationProperties(element);
+            return ['fill', 'stroke'].every((propName) => {
+              const propVal = props.get(propName);
+              /** @type {import('../types/types.js').PaintAttValue|undefined} */
+              if (propVal === undefined) {
+                return true;
+              }
+              const id = propVal.getReferencedID();
+              return id === undefined || !userSpaceElementIds.has(id);
+            });
           });
 
           if (elements.length < 2) {
