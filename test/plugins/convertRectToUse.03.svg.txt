@@ -1,0 +1,22 @@
+Don't convert common <rect> to <use> if it has rx or ry.
+
+===
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15">
+  <rect width="1.23456" height="2.34567"/>
+  <rect x="2" y="3" width="1.23456" height="2.34567"/>
+  <rect x="4" y="6" width="1.23456" height="2.34567"/>
+  <rect x="6" y="9" width="1.23456" height="2.34567" rx="5" ry="5"/>
+</svg>
+
+@@@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15">
+  <use href="#a"/>
+  <use x="2" y="3" href="#a"/>
+  <use x="4" y="6" href="#a"/>
+  <rect x="6" y="9" width="1.23456" height="2.34567" rx="5" ry="5"/>
+  <defs>
+    <rect id="a" width="1.23456" height="2.34567"/>
+  </defs>
+</svg>

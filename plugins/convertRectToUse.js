@@ -86,6 +86,13 @@ export const fn = (info) => {
             return;
         }
 
+        if (
+          element.svgAtts.get('rx') !== undefined ||
+          element.svgAtts.get('ry') !== undefined
+        ) {
+          return;
+        }
+
         /** @type {import('../types/types.js').PathAttValue|undefined} */
         const width = element.svgAtts.get('width');
         const height = element.svgAtts.get('height');
