@@ -8,6 +8,7 @@ import {
   getSVGElement,
 } from '../lib/tools-ast.js';
 import { createElement } from '../lib/xast.js';
+import { CLIP_FILT_MASK } from './_collections.js';
 
 export const name = 'convertRectToUse';
 export const description = 'convert identical <rect>s to <use> elements';
@@ -101,6 +102,12 @@ export const fn = (info) => {
           element.svgAtts.get('rx') !== undefined ||
           element.svgAtts.get('ry') !== undefined
         ) {
+          return;
+        }
+
+        // Don't convert if the <rect> has clip, mask, or filter; see https://svgwg.org/svg2-draft/struct.html#UseLayout
+        const props = styleData.computeOwnStyle(element);
+        if (CLIP_FILT_MASK.some((prop) => props.get(prop) !== undefined)) {
           return;
         }
 

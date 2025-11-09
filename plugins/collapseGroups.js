@@ -2,14 +2,13 @@ import { StyleAttValue } from '../lib/attrs/styleAttValue.js';
 import { SIMPLE_SELECTORS } from '../lib/css/styleData.js';
 import { ChildDeletionQueue } from '../lib/svgo/childDeletionQueue.js';
 import { hasAttributes } from '../lib/tools-ast.js';
-import { elemsGroups } from './_collections.js';
+import { CLIP_FILT_MASK, elemsGroups } from './_collections.js';
 import { getPresentationProperties } from './_styles.js';
 
 export const name = 'collapseGroups';
 export const description = 'collapses useless groups';
 
 const TRANSFORM_PROPS = ['transform', 'translate', 'scale', 'rotate'];
-const INCOMPATIBLE_PROPS = ['clip-path', 'filter', 'mask'];
 
 /**
  * Collapse useless groups.
@@ -220,7 +219,7 @@ function elementHasUnmovableStyles(parentStyles, childStyles) {
   }
 
   // Don't overwrite child with any of these.
-  return INCOMPATIBLE_PROPS.some(
+  return CLIP_FILT_MASK.some(
     (propName) => parentStyles.has(propName) && childStyles.has(propName),
   );
 }
@@ -253,6 +252,6 @@ const hasAnimatedAttr = (node, name) => {
 function hasTransformCollision(e1, e2) {
   return (
     TRANSFORM_PROPS.some((propName) => e1.has(propName)) &&
-    INCOMPATIBLE_PROPS.some((propName) => e2.has(propName))
+    CLIP_FILT_MASK.some((propName) => e2.has(propName))
   );
 }

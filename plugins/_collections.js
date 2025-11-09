@@ -1,5 +1,7 @@
 // https://www.w3.org/TR/SVG11/intro.html#Definitions
 
+export const CLIP_FILT_MASK = ['clip-path', 'filter', 'mask'];
+
 /** @type {Record<string, Set<string>>} */
 export const elemsGroups = {
   animation: new Set([
