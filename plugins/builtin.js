@@ -8,6 +8,7 @@ import * as collapseGroups from '../plugins/collapseGroups.js';
 import * as combineStyleElements from '../plugins/combineStyleElements.js';
 import * as convertEllipseToCircle from '../plugins/convertEllipseToCircle.js';
 import * as convertPathToUse from '../plugins/convertPathToUse.js';
+import * as convertRectToUse from '../plugins/convertRectToUse.js';
 import * as convertShapeToPath from '../plugins/convertShapeToPath.js';
 import * as createGroups from '../plugins/createGroups.js';
 import * as inlineStyles from '../plugins/inlineStyles.js';
@@ -96,6 +97,7 @@ const pluginList = [
   combineStyleElements,
   convertEllipseToCircle,
   convertPathToUse,
+  convertRectToUse,
   convertShapeToPath,
   createGroups,
   inlineStyles,
