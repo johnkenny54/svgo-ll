@@ -1,0 +1,36 @@
+Don't convert common <rect> to <use> if it has inherited style with gradientUnits="userSpaceOnUse".
+
+===
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15">
+  <defs>
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="15" y2="15">
+      <stop offset="0" stop-color="white"/>
+      <stop offset="1" stop-color="black"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#a)">
+    <rect width="1.23456" height="2.34567"/>
+    <rect x="2" y="3" width="1.23456" height="2.34567"/>
+    <rect x="4" y="6" width="1.23456" height="2.34567"/>
+    <rect x="6" y="9" width="1.23456" height="2.34567"/>
+  </g>
+
+</svg>
+
+@@@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15">
+  <defs>
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="15" y2="15">
+      <stop offset="0" stop-color="white"/>
+      <stop offset="1" stop-color="black"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#a)">
+    <rect width="1.23456" height="2.34567"/>
+    <rect x="2" y="3" width="1.23456" height="2.34567"/>
+    <rect x="4" y="6" width="1.23456" height="2.34567"/>
+    <rect x="6" y="9" width="1.23456" height="2.34567"/>
+  </g>
+</svg>

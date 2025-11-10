@@ -1,6 +1,7 @@
 import { SvgAttMap } from '../lib/ast/svgAttMap.js';
 import { AttValue } from '../lib/attrs/attValue.js';
 import { HrefAttValue } from '../lib/attrs/hrefAttValue.js';
+import { PaintAttValue } from '../lib/attrs/paintAttValue.js';
 import { generateId } from '../lib/svgo/tools.js';
 import {
   getHrefId,
@@ -9,7 +10,6 @@ import {
 } from '../lib/tools-ast.js';
 import { createElement } from '../lib/xast.js';
 import { CLIP_FILT_MASK } from './_collections.js';
-import { getPresentationProperties } from './_styles.js';
 
 export const name = 'convertRectToUse';
 export const description = 'convert identical <rect>s to <use> elements';
@@ -25,7 +25,7 @@ export const fn = (info) => {
     return;
   }
 
-  /** @type {Map<string,import('../lib/types.js').XastElement[]>} */
+  /** @type {Map<string,{element:import('../lib/types.js').XastElement,gradientIds:string[]}[]>} */
   const rectToElements = new Map();
 
   /** @type {Set<string>} */
@@ -42,7 +42,7 @@ export const fn = (info) => {
 
   return {
     element: {
-      enter: (element) => {
+      enter: (element, parentList) => {
         if (element.uri !== undefined) {
           return;
         }
@@ -118,8 +118,39 @@ export const fn = (info) => {
           return;
         }
 
+        // Save any gradient IDs so we can check them later.
+        const inheritedProps = styleData.computeStyle(element, parentList);
+        /** @type {string[]} */
+        const ids = [];
+        if (
+          !['fill', 'stroke'].every((propName) => {
+            const propVal =
+              /** @type {import('../types/types.js').PaintAttValue|null|undefined} */ inheritedProps.get(
+                propName,
+              );
+            if (propVal === undefined) {
+              return true;
+            }
+            if (propVal === null) {
+              return false;
+            }
+
+            // TODO: get rid of parsing; use styleData.computeProperties() above.
+            const attVal = new PaintAttValue(propVal);
+            const id = attVal.getReferencedID();
+            if (id !== undefined && userSpaceElementIds.has(id)) {
+              ids.push(id);
+            }
+            return true;
+          })
+        ) {
+          return;
+        }
         const str = `${width}:${height}`;
-        addToMapArray(rectToElements, str, element);
+        addToMapArray(rectToElements, str, {
+          element: element,
+          gradientIds: ids,
+        });
       },
     },
     root: {
@@ -131,21 +162,14 @@ export const fn = (info) => {
 
         for (const rawElements of rectToElements.values()) {
           const elements = rawElements.filter((element) => {
-            const id = element.svgAtts.get('id')?.toString();
+            const id = element.element.svgAtts.get('id')?.toString();
             if (id !== undefined && clipPathUseIds.has(id)) {
               // Don't convert any <rect>s that are referenced by a <use> in a <clipPath>.
               return false;
             }
 
-            const props = getPresentationProperties(element);
-            return ['fill', 'stroke'].every((propName) => {
-              const propVal = props.get(propName);
-              /** @type {import('../types/types.js').PaintAttValue|undefined} */
-              if (propVal === undefined) {
-                return true;
-              }
-              const id = propVal.getReferencedID();
-              return id === undefined || !userSpaceElementIds.has(id);
+            return element.gradientIds.every((id) => {
+              return !userSpaceElementIds.has(id);
             });
           });
 
@@ -155,7 +179,10 @@ export const fn = (info) => {
 
           const info = getNextId(counter, currentIds);
           counter = info.nextCounter;
-          newDefs.push({ id: info.nextId, elements: elements });
+          newDefs.push({
+            id: info.nextId,
+            elements: elements.map((info) => info.element),
+          });
         }
 
         if (newDefs.length > 0) {
