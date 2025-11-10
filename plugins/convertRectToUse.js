@@ -31,8 +31,8 @@ export const fn = (info) => {
   /** @type {Set<string>} */
   const currentIds = new Set();
 
-  /** @type {Map<string,import('../lib/types.js').XastElement[]>} */
-  const clipPathUses = new Map();
+  /** @type {Set<string>} */
+  const clipPathUseIds = new Set();
 
   /** @type {Set<string>} */
   const userSpaceElementIds = new Set();
@@ -64,10 +64,9 @@ export const fn = (info) => {
             ) {
               // If it's a child of a <clipPath>, record the id to make sure we maintain direct references.
               const hrefId = getHrefId(element);
-              if (hrefId === undefined) {
-                return;
+              if (hrefId !== undefined) {
+                clipPathUseIds.add(hrefId);
               }
-              addToMapArray(clipPathUses, hrefId, element);
             }
             return;
           case 'rect':
@@ -132,6 +131,12 @@ export const fn = (info) => {
 
         for (const rawElements of rectToElements.values()) {
           const elements = rawElements.filter((element) => {
+            const id = element.svgAtts.get('id')?.toString();
+            if (id !== undefined && clipPathUseIds.has(id)) {
+              // Don't convert any <rect>s that are referenced by a <use> in a <clipPath>.
+              return false;
+            }
+
             const props = getPresentationProperties(element);
             return ['fill', 'stroke'].every((propName) => {
               const propVal = props.get(propName);
@@ -172,18 +177,6 @@ export const fn = (info) => {
               element.svgAtts.set('href', new HrefAttValue('#' + def.id));
               element.svgAtts.delete('width');
               element.svgAtts.delete('height');
-
-              // If there is a <use> in a <clipPath> that references this <rect>, reset the reference so it directly
-              // references the new rect - see https://drafts.fxtf.org/css-masking/#ClipPathElement
-              const pathId = element.svgAtts.get('id')?.toString();
-              if (pathId !== undefined) {
-                const elements = clipPathUses.get(pathId);
-                if (elements !== undefined) {
-                  elements.forEach((element) => {
-                    element.svgAtts.set('href', new HrefAttValue('#' + def.id));
-                  });
-                }
-              }
             }
           }
         }
