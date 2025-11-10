@@ -241,7 +241,7 @@ function calculateSavings(elements) {
   const height = elements[0].element.svgAtts.getAtt('height').toString();
   const whLen = width.length + height.length;
 
-  const cost = '<rect id="" width="" height=""'.length + idLen + whLen;
+  const cost = '<rect id="" width="" height=""/>'.length + idLen + whLen;
   const oldLen = '<rect width="" height=""'.length + whLen;
   const newLen = '<use href="#"'.length + idLen;
   const savings = elements.length * (oldLen - newLen);
