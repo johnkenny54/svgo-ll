@@ -173,7 +173,7 @@ export const fn = (info) => {
             });
           });
 
-          if (elements.length < 2) {
+          if (calculateSavings(elements) <= 0) {
             continue;
           }
 
@@ -225,6 +225,27 @@ function addToMapArray(map, key, item) {
     map.set(key, array);
   }
   array.push(item);
+}
+
+/**
+ * @param {{element:import('../lib/types.js').XastElement}[]} elements
+ * @returns {number}
+ */
+function calculateSavings(elements) {
+  if (elements.length < 2) {
+    return -1;
+  }
+
+  const idLen = 1;
+  const width = elements[0].element.svgAtts.getAtt('width').toString();
+  const height = elements[0].element.svgAtts.getAtt('height').toString();
+  const whLen = width.length + height.length;
+
+  const cost = '<rect id="" width="" height=""'.length + idLen + whLen;
+  const oldLen = '<rect width="" height=""'.length + whLen;
+  const newLen = '<use href="#"'.length + idLen;
+  const savings = elements.length * (oldLen - newLen);
+  return savings - cost;
 }
 
 /**
